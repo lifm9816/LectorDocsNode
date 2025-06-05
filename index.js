@@ -17,10 +17,12 @@ if (!filePath) {
 
 try {
   console.log("📤 Extrayendo contenido del archivo...");
-  const extractedText = await extractTextFromFile(filePath);
+  const extractedData = await extractTextFromFile(filePath);
 
   console.log("🧠 Clasificando contenido...");
-  const folder = await classifyText(extractedText);
+  // Unir todos los chunks para la clasificación
+  const fullText = extractedData.chunks.join(' ');
+  const folder = await classifyText(fullText);
 
   console.log(`📁 El documento debe almacenarse en la carpeta: ${folder}`);
 } catch (err) {

@@ -41,11 +41,15 @@ function splitTextIntoChunks(text, maxChunkSize = 15000) {
 // Función para extraer texto de PPTX usando unzip
 async function extractPPTXText(filePath) {
     try {
+        console.log('Iniciando extracción de PPTX:', filePath);
+        
         // Crear un directorio temporal
         const tempDir = path.join(path.dirname(filePath), 'temp_pptx_' + Date.now());
         await fs.promises.mkdir(tempDir, { recursive: true });
+        console.log('Directorio temporal creado:', tempDir);
 
         // Descomprimir el archivo PPTX
+        console.log('Descomprimiendo archivo PPTX...');
         await execAsync(`unzip -q "${filePath}" -d "${tempDir}"`);
 
         // Leer los archivos de diapositivas
@@ -66,6 +70,7 @@ async function extractPPTXText(filePath) {
 
         // Procesar diapositivas
         if (fs.existsSync(slidesDir)) {
+            console.log('Procesando diapositivas...');
             const files = await fs.promises.readdir(slidesDir);
             for (const file of files.filter(f => f.endsWith('.xml'))) {
                 const slideText = await extractTextFromXML(path.join(slidesDir, file));
@@ -74,10 +79,13 @@ async function extractPPTXText(filePath) {
                     text.push(slideText);
                 }
             }
+        } else {
+            console.log('No se encontró el directorio de diapositivas:', slidesDir);
         }
 
         // Procesar notas
         if (fs.existsSync(notesDir)) {
+            console.log('Procesando notas...');
             const files = await fs.promises.readdir(notesDir);
             for (const file of files.filter(f => f.endsWith('.xml'))) {
                 const noteText = await extractTextFromXML(path.join(notesDir, file));
@@ -86,14 +94,19 @@ async function extractPPTXText(filePath) {
                     text.push(noteText);
                 }
             }
+        } else {
+            console.log('No se encontró el directorio de notas:', notesDir);
         }
 
         // Limpiar
+        console.log('Limpiando directorio temporal...');
         await fs.promises.rm(tempDir, { recursive: true, force: true });
 
-        return text.join('\n\n');
+        const result = text.join('\n\n');
+        console.log('Extracción de PPTX completada. Longitud del texto:', result.length);
+        return result;
     } catch (error) {
-        console.error('Error extrayendo texto de PPTX:', error);
+        console.error('Error detallado extrayendo texto de PPTX:', error);
         throw error;
     }
 }
